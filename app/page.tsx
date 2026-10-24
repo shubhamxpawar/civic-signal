@@ -1,0 +1,1 @@
+export default function Home(){return <section style={{padding:"12vh 8vw"}}><div className="mono">CIVIC & COMMUNITY TOOLS</div><h1 style={{fontSize:"clamp(48px,10vw,96px)",margin:"12px 0"}}>CivicSignal</h1><p>DEMO DATA · fictional citizen reports</p></section>}
