@@ -1,0 +1,13 @@
+import{readFile,writeFile,rename,mkdir}from"node:fs/promises";import{randomUUID}from"node:crypto";import type{EscalationDraft,Report}from"./types";import{buildIssues}from"./issues";import path from"node:path";
+const root=process.cwd(),reportFile=path.join(root,"data/reports.json"),stateFile=path.join(root,"data/state.json");type State={escalations:EscalationDraft[]};let reports:Report[]|undefined,state:State={escalations:[]},readonlyMode=false,version=0,cached:{version:number;issues:ReturnType<typeof buildIssues>}|undefined;
+async function atomic(file:string,value:unknown){const temp=`${file}.${randomUUID()}.tmp`;await writeFile(temp,JSON.stringify(value,null,2));await rename(temp,file)}
+export async function loadReports(){if(!reports){try{reports=JSON.parse(await readFile(reportFile,"utf8")) as Report[]}catch{reports=[]}try{state=JSON.parse(await readFile(stateFile,"utf8")) as State}catch{state={escalations:[]}}}return reports??[]}
+export async function getIssues(){const rs=await loadReports();if(!cached||cached.version!==version)cached={version,issues:buildIssues(rs).map(i=>{const draft=state.escalations.find(d=>d.issueId===i.id);return draft?{...i,status:draft.status==="sent_simulated"?"escalated_simulated" as const:"escalation_drafted" as const}:i})};return cached.issues}
+export async function getDrafts(){await loadReports();return state.escalations}
+export function isReadOnly(){return readonlyMode}
+async function persist(){try{await mkdir(path.dirname(stateFile),{recursive:true});await atomic(reportFile,reports??[]);await atomic(stateFile,state)}catch{readonlyMode=true}}
+export async function addReport(report:Report){const rs=await loadReports();reports=[...rs,report];version++;await persist();const after=await getIssues(),issue=after.find(i=>i.reportIds.includes(report.id));return{report,issueId:issue?.id??"",joinedExisting:!!issue&&issue.reportIds.some(id=>id!==report.id),issueSummary:issue}}
+export async function saveDraft(draft:EscalationDraft){await loadReports();state={...state,escalations:[...state.escalations.filter(d=>d.issueId!==draft.issueId),draft]};version++;await persist()}
+export async function updateDraft(id:string,patch:Partial<EscalationDraft>){await loadReports();const d=state.escalations.find(x=>x.id===id);if(!d)return undefined;if(patch.status==="approved"&&d.status!=="draft")return undefined;if(patch.status==="sent_simulated"&&d.status!=="approved")return undefined;Object.assign(d,patch);version++;await persist();return d}
+export async function clearData(){reports=[];state={escalations:[]};version++;await persist()}
+export function reloadFromDisk(){reports=undefined;state={escalations:[]};version++;cached=undefined}
