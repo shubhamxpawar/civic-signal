@@ -1,0 +1,1 @@
+import ReportForm from"../../../components/ReportForm";export default function ReportPage(){return <div style={{padding:"30px 4vw",maxWidth:900,margin:"auto"}}><div className="mono">CITIZEN REPORT · ABOUT 30 SECONDS</div><h1 style={{fontSize:46}}>Report a street issue</h1><p>Share what you observed. Reports are unverified and help reviewers see patterns.</p><ReportForm/></div>}
