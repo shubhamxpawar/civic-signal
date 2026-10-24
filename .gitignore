@@ -1,0 +1,6 @@
+node_modules/
+.next/
+coverage/
+data/state.json
+data/uploads/
+*.log

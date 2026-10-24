@@ -1,0 +1,3 @@
+import {haversine} from "./geo";
+export const LOCALITIES=[["Shivajinagar",18.5308,73.8475],["Deccan",18.5167,73.8416],["Swargate",18.5018,73.8636],["Kothrud",18.5074,73.8077],["Aundh",18.558,73.8075],["Baner",18.559,73.7868],["Wakad",18.5974,73.7898],["Hinjewadi",18.5912,73.7389],["Pimpri",18.6279,73.8009],["Viman Nagar",18.5679,73.9143],["Kharadi",18.5511,73.9406],["Hadapsar",18.5089,73.926],["Katraj",18.4575,73.8677]] as const;
+export function nearestLocality(lat:number,lng:number):string{return [...LOCALITIES].sort((a,b)=>haversine({lat,lng},{lat:a[1],lng:a[2]})-haversine({lat,lng},{lat:b[1],lng:b[2]}))[0][0];}

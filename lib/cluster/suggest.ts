@@ -1,0 +1,3 @@
+import {tokens} from "./text";import type{Category}from"../types";
+const words:Record<Category,string[]>={pothole:["pothole"],garbage:["garbage"],streetlight:["light","dark"],waterlogging:["water"],open_manhole:["manhole"],broken_footpath:["footpath"]};
+export function suggestCategory(text:string):{category:Category;confidence:number}{const ts=tokens(text);let best:Category="pothole",score=0;for(const [category,keys]of Object.entries(words)as[Category,string[]][]){const n=ts.filter(t=>keys.includes(t)).length;if(n>score){score=n;best=category}}return{category:best,confidence:score?Math.min(.95,.55+.2*(score-1)):0};}
