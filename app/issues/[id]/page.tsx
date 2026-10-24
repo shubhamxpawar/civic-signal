@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getIssues, getDrafts, loadReports } from "../../../lib/store";
 import { findFlags } from "../../../lib/cluster/flags";
@@ -15,8 +16,9 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
   if (!issue) notFound();
 
   const reports = allReports.filter((report) => issue.reportIds.includes(report.id));
-  const days = Math.max(0, Math.floor((Date.now() - Date.parse(issue.firstReportAt)) / 86400000));
-  const recent = reports.filter((report) => Date.now() - Date.parse(report.createdAt) <= 72 * 3600000).length;
+  const referenceNow = Math.max(...allReports.map((report) => Date.parse(report.createdAt)));
+  const days = Math.max(0, Math.floor((referenceNow - Date.parse(issue.firstReportAt)) / 86400000));
+  const recent = reports.filter((report) => referenceNow - Date.parse(report.createdAt) <= 72 * 3600000).length;
   const rawFactors: Record<string, string> = {
     count: `${issue.uniqueReporters} unique reporters`,
     severity: `average ${issue.avgSeverity.toFixed(1)} · category risk ${DEFAULT_CONFIG.perCategory[issue.category].risk.toFixed(2)}`,
@@ -52,7 +54,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
           <div className="border-ink shadow-hard" style={{ height: 350, overflow: "hidden" }}><MapView issues={[issue]} reports={reports} raw /></div>
           <h2>Evidence · {reports.length} submissions</h2>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {reports.filter((report) => report.photoUrl).map((report) => <figure key={report.id} style={{ margin: 0, border: "2px solid", background: "white" }}><img src={report.photoUrl} alt="Fictional placeholder photo" width="150" height="100" /><figcaption className="mono" style={{ fontSize: 10, padding: 4 }}>DEMO PHOTO</figcaption></figure>)}
+            {reports.filter((report) => report.photoUrl).map((report) => <figure key={report.id} style={{ margin: 0, border: "2px solid", background: "white" }}><Image src={report.photoUrl ?? `/api/placeholder/${report.id}`} alt="Fictional placeholder photo" width={150} height={100} unoptimized /><figcaption className="mono" style={{ fontSize: 10, padding: 4 }}>DEMO PHOTO</figcaption></figure>)}
             {!reports.some((report) => report.photoUrl) && <p>No placeholder photos for this issue.</p>}
           </div>
           <h3>Reports by day</h3>

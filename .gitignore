@@ -4,3 +4,4 @@ coverage/
 data/state.json
 data/uploads/
 *.log
+*.tsbuildinfo
